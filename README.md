@@ -6,4 +6,6 @@ well well well,i only saw the first 2 pages of the document and went on to try t
 #Technical Update
 on day 1 i watched n numbers of videos of 6502 and its processing, i started the code somewhere.
 on day 2 i couldnt do much as i was in a day long event
-on day 3 here i am trying to finish the work.
+on day 3 here i am trying to finish the work, i did add some functions.
+day 4 was spent on academic stuff
+day 5 im trying to make it work xo.
