@@ -10,8 +10,14 @@ class CPU:
     def fetch(self,memory):
         ins=memory.read(self.PC)
         self.PC+=1
-        self.cycles-=1
         return ins
+    def immediate(self,memory):
+        value=self.fetch(memory)
+        return value
+    def absolute(self,memory):
+        lo=self.fetch(memory)
+        hi=self.fetch(memory)
+        return (hi << 8) | lo
     def execute(self,memory,cycles=2):
         self.cycles=cycles
         while(cycles>0):
@@ -19,6 +25,7 @@ class CPU:
             cycles-=1
             if opcode==0xA9: #LDA
                 self.A=self.fetch(memory)
+                self.update_flags(self.A)
                 print(f"LDA #{self.A:02X}")
                 cycles-=1
             elif opcode==0xA2: #LDX
@@ -30,6 +37,7 @@ class CPU:
                 print(f"LDY #{self.Y:02X}")
             elif opcode==0xAA: # TAX
                 self.X=self.A
+                self.update_flags(self.X)
                 self.cycles-=1
                 print(f"TAX (X={self.X:02X})")
             elif opcode==0xA8: #TAY
@@ -44,6 +52,25 @@ class CPU:
                 self.A=self.X
                 self.cycles-=1
                 print(f"TXA (A={self.A:02X})")
+            elif opcode==0x8D:  #STA 
+                address=self.absolute(memory)
+                memory.write(address,self.A)
+                self.cycles-=3
+                print(f"STA ${address:04X}")
+            elif opcode==0x48:  #PHA 
+                self.push_stack(memory,self.A)
+                self.cycles -= 2
+                print(f"PHA (Pushed A = {self.A:02X})")
+            elif opcode==0x68:  #PLA 
+                self.A=self.pop_stack(memory)
+                self.update_flags(self.A)
+                self.cycles-=3  
+                print(f"PLA (Pulled A = {self.A:02X})")
+            elif opcode==0x4C:  #JMP
+                address=self.absolute(memory)
+                self.PC=address  
+                self.cycles-=2
+                print(f"JMP ${address:04X}")
             elif opcode==0x00:
                 print("Execution Halted")
                 break
@@ -56,6 +83,9 @@ class CPU:
     def pop_stack(self,memory):
         self.SP=(self.SP+1)&0xFF
         return memory.read(0x0100+self.SP)
+    def update_flags(self,value):
+        self.Z=1 if value==0 else 0
+        self.N=1 if (value&0x80) else 0
 class Memory:
     def __init__(self):
         self.mem=[0]*64*1024
