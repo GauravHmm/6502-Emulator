@@ -19,15 +19,18 @@ class CPU:
             cycles-=1
             if opcode==0xA9: #LDA
                 self.A=self.fetch(memory)
+                print(f"LDA #{self.A:02X}")
                 cycles-=1
             elif opcode == 0xAA: # TAX
                 self.X = self.A
                 self.cycles -= 1
+                print(f"TAX (X = {self.X:02X})")
             elif opcode==0x00:
                 print("Execution Halted")
                 break
             else:
                 print(f"Unknown opcode: {hex(opcode)}")
+        return cycles -self.cycles
 class Memory:
     def __init__(self):
         self.mem = [0]*64*1024
@@ -52,5 +55,7 @@ class Memory:
 if __name__=="__main__":
     memory=Memory()
     cpu=CPU()
-    memory.loadbin("instructions.bin")
-    cpu.execute(memory)            
+    if memory.loadbin("instructions.bin", 0xFFFC):
+        cycles_used = cpu.execute(memory, 10)
+        print(f"Execution completed. Used {cycles_used} cycles.")
+        print(f"Final CPU state - A: ${cpu.A:02X}, X: ${cpu.X:02X}, Y: ${cpu.Y:02X}, PC: ${cpu.PC:04X}")      
