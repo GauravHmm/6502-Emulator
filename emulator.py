@@ -21,16 +21,35 @@ class CPU:
                 self.A=self.fetch(memory)
                 print(f"LDA #{self.A:02X}")
                 cycles-=1
-            elif opcode == 0xAA: # TAX
-                self.X = self.A
-                self.cycles -= 1
-                print(f"TAX (X = {self.X:02X})")
+            elif opcode==0xA2: #LDX
+                self.X=self.fetch(memory)
+                print(f"LDX #{self.X:02X}")
+                cycles-=1
+            elif opcode==0xA0: #LDY
+                self.Y=self.fetch(memory)
+                print(f"LDY #{self.Y:02X}")
+            elif opcode==0xAA: # TAX
+                self.X=self.A
+                self.cycles-=1
+                print(f"TAX (X={self.X:02X})")
+            elif opcode==0xA8: #TAY
+                self.Y=self.A
+                self.cycles-=1
+                print(f"TAY (Y={self.Y:02X})")
+            elif opcode==0x98: #TYA
+                self.A=self.Y
+                self.cycles-=1
+                print(f"TYA (A={self.A:02X})")
+            elif opcode==0x8A: #TXA
+                self.A=self.X
+                self.cycles-=1
+                print(f"TXA (A={self.A:02X})")
             elif opcode==0x00:
                 print("Execution Halted")
                 break
             else:
                 print(f"Unknown opcode: {hex(opcode)}")
-        return cycles -self.cycles
+        return cycles-self.cycles
 class Memory:
     def __init__(self):
         self.mem = [0]*64*1024
