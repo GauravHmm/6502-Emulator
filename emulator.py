@@ -50,22 +50,28 @@ class CPU:
             else:
                 print(f"Unknown opcode: {hex(opcode)}")
         return cycles-self.cycles
+    def push_stack(self,memory,value):
+        memory.write(0x0100+self.SP,value)
+        self.SP=(self.SP-1)&0xFF
+    def pop_stack(self,memory):
+        self.SP=(self.SP+1)&0xFF
+        return memory.read(0x0100+self.SP)
 class Memory:
     def __init__(self):
-        self.mem = [0]*64*1024
+        self.mem=[0]*64*1024
     def read(self,address):
-        address = address & 0xFFFF
+        address=address&0xFFFF
         return self.mem[address]
     def write(self,address,value):
-        address = address & 0xFFFF
-        value = value & 0xFF
+        address=address&0xFFFF
+        value=value&0xFF
         self.mem[address]=value   
-    def loadbin(self, filename, start_address=0x0000):
+    def loadbin(self,filename,start_address=0x0000):
         try:
-            with open(filename, 'rb') as f:
-                binary_data = f.read()
+            with open(filename,'rb') as f:
+                binary_data=f.read()
                 for i, byte in enumerate(binary_data):
-                    self.mem[start_address + i] = byte
+                    self.mem[start_address + i]=byte
             print(f"Loaded {filename} at {start_address}")
             return True
         except Exception as e:
@@ -74,7 +80,7 @@ class Memory:
 if __name__=="__main__":
     memory=Memory()
     cpu=CPU()
-    if memory.loadbin("instructions.bin", 0xFFFC):
-        cycles_used = cpu.execute(memory, 10)
+    if memory.loadbin("instructions.bin",0xFFFC):
+        cycles_used=cpu.execute(memory,10)
         print(f"Execution completed. Used {cycles_used} cycles.")
         print(f"Final CPU state - A: ${cpu.A:02X}, X: ${cpu.X:02X}, Y: ${cpu.Y:02X}, PC: ${cpu.PC:04X}")      
