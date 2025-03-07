@@ -8,4 +8,4 @@ on day 1 i watched n numbers of videos of 6502 and its processing, i started the
 on day 2 i couldnt do much as i was in a day long event
 on day 3 here i am trying to finish the work, i did add some functions.
 day 4 was spent on academic stuff
-day 5 im trying to make it work xo.
+day 5 im trying to make it work xo. well it is working now im slowly trying to make it complex and hopefully not hurt myself
