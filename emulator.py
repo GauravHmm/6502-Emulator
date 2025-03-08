@@ -1,12 +1,15 @@
 class CPU:
     def __init__(self):
-        self.reset()
-    def reset(self):
-        self.PC=0xFFFC
+        self.PC=0
         self.SP=0xFF
         self.C=self.Z=self.I=self.D=self.B=self.V=self.N=0
         self.A=self.X=self.Y=0
         self.cycles=0
+    def reset(self,memory):
+        low=memory.read(0xFFFC)
+        high=memory.read(0xFFFD)
+        self.PC=(high<<8)|low
+        print(f"CPU Reset - Start PC=${self.PC:04X}")
     def fetch(self,memory):
         ins=memory.read(self.PC)
         self.PC+=1
@@ -71,6 +74,22 @@ class CPU:
                 self.PC=address  
                 self.cycles-=2
                 print(f"JMP ${address:04X}")
+            elif opcode==0xca: #DEX
+                self.X=(self.X-1) &0xFF
+                self.Z=1 if self.X==0 else 0
+                self.N=1 if (self.X&0x80) else 0
+                print(f"DEX (X={self.X:02X})")
+            elif opcode==0xD0:  #BNE
+                offset=self.fetch(memory)
+                if offset>127:
+                    offset-=256
+                if self.Z==0:  
+                    new_pc=(self.PC+offset)&0xFFFF  
+                    self.cycles-=1  
+                    if (self.PC&0xFF00)!=(new_pc&0xFF00):  
+                        self.cycles-=1  
+                    self.PC=new_pc  
+                    print(f"BNE{offset:+}->PC=${self.PC:04X}") 
             elif opcode==0x00:
                 print("Execution Halted")
                 break
@@ -95,13 +114,17 @@ class Memory:
     def write(self,address,value):
         address=address&0xFFFF
         value=value&0xFF
-        self.mem[address]=value   
+        self.mem[address]=value
+    def reset_vector(self,address):
+        self.write(0xFFFC,address&0xFF)  
+        self.write(0xFFFD,(address>>8)&0xFF)  
+        print(f"Reset vector set to ${address:04X}")
     def loadbin(self,filename,start_address=0x0000):
         try:
             with open(filename,'rb') as f:
                 binary_data=f.read()
                 for i, byte in enumerate(binary_data):
-                    self.mem[start_address + i]=byte
+                    self.mem[(start_address + i)&0xFFFF]=byte
             print(f"Loaded {filename} at {start_address}")
             return True
         except Exception as e:
@@ -110,7 +133,9 @@ class Memory:
 if __name__=="__main__":
     memory=Memory()
     cpu=CPU()
-    if memory.loadbin("instructions.bin",0xFFFC):
-        cycles_used=cpu.execute(memory,10)
+    if memory.loadbin("instructions.bin",0x0600):
+        memory.reset_vector(0x0600)
+        cpu.reset(memory)
+        cycles_used=cpu.execute(memory,50)
         print(f"Execution completed. Used {cycles_used} cycles.")
         print(f"Final CPU state - A: ${cpu.A:02X}, X: ${cpu.X:02X}, Y: ${cpu.Y:02X}, PC: ${cpu.PC:04X}")      
