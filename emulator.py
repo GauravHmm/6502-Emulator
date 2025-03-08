@@ -1,10 +1,10 @@
 class CPU:
     def __init__(self):
-        self.PC=0
-        self.SP=0xFF
-        self.C=self.Z=self.I=self.D=self.B=self.V=self.N=0
-        self.A=self.X=self.Y=0
-        self.cycles=0
+        self.PC=0 #Program Counter
+        self.SP=0xFF #Stack Pointer
+        self.C=self.Z=self.I=self.D=self.B=self.V=self.N=0 #Flags
+        self.A=self.X=self.Y=0 #Registers
+        self.cycles=0 #Execution cycle count
     def reset(self,memory):
         low=memory.read(0xFFFC)
         high=memory.read(0xFFFD)
@@ -26,7 +26,8 @@ class CPU:
         while(cycles>0):
             opcode=self.fetch(memory)
             cycles-=1
-            if opcode==0xA9: #LDA
+            #Instructions
+            if opcode==0xA9: #LDA Immediate
                 self.A=self.fetch(memory)
                 self.update_flags(self.A)
                 print(f"LDA #{self.A:02X}")
@@ -69,7 +70,7 @@ class CPU:
                 self.update_flags(self.A)
                 self.cycles-=3  
                 print(f"PLA (Pulled A = {self.A:02X})")
-            elif opcode==0x4C:  #JMP
+            elif opcode==0x4C:  #JMP Absolute
                 address=self.absolute(memory)
                 self.PC=address  
                 self.cycles-=2
@@ -81,7 +82,7 @@ class CPU:
                 print(f"DEX (X={self.X:02X})")
             elif opcode==0xD0:  #BNE
                 offset=self.fetch(memory)
-                if offset>127:
+                if offset>127: #convert to signed
                     offset-=256
                 if self.Z==0:  
                     new_pc=(self.PC+offset)&0xFFFF  
