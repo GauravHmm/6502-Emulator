@@ -18,4 +18,3 @@ def create_test_binary():
     print("Created test binary file: instructions.bin")
 if __name__=="__main__":
     create_test_binary()
-
